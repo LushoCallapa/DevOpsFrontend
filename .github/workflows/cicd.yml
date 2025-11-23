@@ -41,7 +41,7 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           script: |
             cd /home/${{ secrets.EC2_USER }}/backend
-            echo "VITE_REACT_APP_API_URL=\"${{ secrets.ENV_VITE_REACT_APP_API_URL }}\"" > .env
+            echo "VITE_REACT_APP_API_URL=\"${{ secrets.ENV_BACKEND_API_URL }}\"" > .env
             cat .env
 
       - name: Install, build & restart frontend on EC2
