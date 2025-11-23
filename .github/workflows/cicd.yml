@@ -12,6 +12,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Crear carpeta si no existe
       - name: Ensure frontend folder exists on EC2
         uses: appleboy/ssh-action@v1
         with:
@@ -21,6 +22,7 @@ jobs:
           script: |
             mkdir -p /home/${{ secrets.EC2_USER }}/frontend
 
+      # Copiar todos los archivos incluyendo .env
       - name: Copy frontend files to EC2
         uses: appleboy/scp-action@v1
         with:
@@ -31,8 +33,18 @@ jobs:
           target: "/home/${{ secrets.EC2_USER }}/frontend"
           strip_components: 0
           rm: true
+      - name: Create .env on EC2
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            cd /home/${{ secrets.EC2_USER }}/backend
+            echo "VITE_REACT_APP_API_URL=\"${{ secrets.ENV_VITE_REACT_APP_API_URL }}\"" > .env
+            cat .env
 
-      - name: Install dependencies & build frontend
+      - name: Install, build & restart frontend on EC2
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -41,10 +53,15 @@ jobs:
           script: |
             cd /home/${{ secrets.EC2_USER }}/frontend
 
-            echo "Checking Node.js..."
+            echo "Ensuring Node.js is installed..."
             if ! command -v node &> /dev/null; then
               curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
               sudo apt-get install -y nodejs
+            fi
+
+            echo "Ensuring PM2 is installed..."
+            if ! command -v pm2 &> /dev/null; then
+              sudo npm install -g pm2
             fi
 
             echo "Installing frontend dependencies..."
@@ -53,12 +70,9 @@ jobs:
             echo "Building frontend..."
             npm run build
 
-            echo "Checking Serve..."
-            if ! command -v serve &> /dev/null; then
-              sudo npm install -g serve
-            fi
+            echo "Restarting frontend with PM2..."
+            export $(grep -v '^#' .env | xargs)
 
-            echo "Restarting frontend..."
             pm2 delete frontend || true
-            pm2 start "serve -s build -l 3001" --name frontend
+            pm2 start dist --name frontend -- serve -s dist -l 80
             pm2 save
