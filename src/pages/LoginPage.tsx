@@ -1,14 +1,22 @@
 import { useState } from "react";
+import { login } from "../services/userService";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    console.log("Login attempt", { email, password });
-  };
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  try {
+    const res = await login({ email, password });
+    console.log("Usuario logueado:", res);
+    if (res.token) localStorage.setItem("token", res.token);
+  } catch (err) {
+    console.error("Error en login:", err);
+    alert("Usuario o contraseña incorrecta");
+  }
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-700 p-6">
