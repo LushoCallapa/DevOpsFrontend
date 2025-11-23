@@ -33,6 +33,7 @@ jobs:
           target: "/home/${{ secrets.EC2_USER }}/frontend"
           strip_components: 0
           rm: true
+
       - name: Create .env on EC2
         uses: appleboy/ssh-action@v1
         with:
@@ -74,5 +75,5 @@ jobs:
             export $(grep -v '^#' .env | xargs)
 
             pm2 delete frontend || true
-            pm2 start dist --name frontend -- serve -s dist -l 80
+            pm2 start "serve -s dist -l 3001" --name frontend
             pm2 save
