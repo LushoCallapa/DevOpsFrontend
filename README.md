@@ -29,3 +29,4 @@ Prerequisitos
 
 ### Aclaración
 El proyecto como tal se ejecuta a traves de ec2s ya configurados en AWS, no es necesario correrlo localmente, y por consecuencia no se necesita la instalación de dependencias ni un .env.
+El link al cual conectarse es: http://3.80.5.56:3001/ 
