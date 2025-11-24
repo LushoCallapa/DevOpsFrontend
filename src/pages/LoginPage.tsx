@@ -1,17 +1,22 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { login } from "../services/userService";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
   try {
     const res = await login({ email, password });
     console.log("Usuario logueado:", res);
-    if (res.token) localStorage.setItem("token", res.token);
+    if (res.token) {
+      localStorage.setItem("token", res.token);
+    }
+    navigate("/success");
   } catch (err) {
     console.error("Error en login:", err);
     alert("Usuario o contraseña incorrecta");
